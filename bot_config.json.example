@@ -1,0 +1,18 @@
+{
+  "player_positions": [
+    [640, 600],
+    [120, 360],
+    [640, 120],
+    [1160, 360]
+  ],
+  "buttons": {
+    "danh_phai":      [787, 424],
+    "danh_giua":      [602, 427],
+    "bo_luot_trai":   [453, 434],
+    "bo_luot_giua":   [613, 416],
+    "tiep_tuc":       [773, 649],
+    "van_sau":        [819, 647],
+    "reset_pos":      [200, 400],
+    "safe_click":     [500, 500]
+  }
+}

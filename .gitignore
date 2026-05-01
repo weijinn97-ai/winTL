@@ -1,0 +1,25 @@
+# Secrets / config riêng
+.env
+bot_config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Bot artifacts
+speed_log.csv
+smoke_capture.png
+debug_capture.png
+debug_button_roi.png
+debug_annotated.png
+*.log
+
+# Templates ảnh (binary lớn — push riêng nếu cần)
+cards_output/
+
+# IDE
+.vscode/
+.idea/
