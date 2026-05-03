@@ -80,11 +80,18 @@ def check_config():
 
 # -------------------- 4. Templates --------------------
 def check_cards_dir():
-    d = BASE / "cards_output"
-    assert d.exists(), f"{d} không tồn tại"
-    pngs = list(d.glob("*.png"))
-    assert pngs, f"{d} không có file .png nào"
-    detail = f"{len(pngs)} file .png"
+    # V3 dùng canonical_templates/ (commit sẵn). V1/V2 dùng cards_output/ (user tự đặt).
+    canonical = BASE / "canonical_templates"
+    legacy = BASE / "cards_output"
+    if canonical.exists():
+        rank = list((canonical / "rank_gallery").glob("*.png"))
+        suit = list((canonical / "suit_gallery").glob("*.png"))
+        assert rank and suit, "canonical_templates/ thiếu rank_gallery hoặc suit_gallery"
+        return f"V3: {len(rank)} rank + {len(suit)} suit templates"
+    assert legacy.exists(), "Không tìm thấy canonical_templates/ hoặc cards_output/"
+    pngs = list(legacy.glob("*.png"))
+    assert pngs, f"{legacy} không có file .png nào"
+    detail = f"V1/V2: {len(pngs)} file .png"
     if len(pngs) < 52:
         detail += " (kỳ vọng 52)"
     return detail

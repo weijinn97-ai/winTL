@@ -25,6 +25,7 @@ import shutil
 
 from card_detector import CardDetector
 from card_detector_v2 import CardDetectorV2
+from card_detector_v3 import CardDetectorV3
 from screen_stream import ScreenStream
 
 try:
@@ -52,6 +53,7 @@ load_dotenv(BASE_DIR / ".env")
 ADB_PATH = os.getenv('ADB_PATH', 'adb')
 MEMU_IP = os.getenv('MEMU_IP', '')
 TEMPLATE_DIR = BASE_DIR / 'cards_output'
+CANONICAL_TEMPLATE_DIR = BASE_DIR / 'canonical_templates'
 BUTTON_TEMPLATE_DIR = BASE_DIR / 'button_templates'
 
 RANK_ORDER_STRAIGHT = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
@@ -111,9 +113,16 @@ class TiLenBot:
         self.allow_adb = False
         self.battle_task = None
         self.adb_sem = asyncio.Semaphore(1)
-        # Chọn detector: True = v2 (multi-scale, adaptive), False = v1 (gốc)
+        # Chọn detector:
+        #   V3 (mặc định, 97.4%): multi-scale rank + voting suit + SVM ♠↔♣
+        #   V2 (fallback):              crop30% + all-peaks template matching
+        #   V1 (legacy):                full-card grayscale template matching
+        USE_DETECTOR_V3 = os.getenv('USE_DETECTOR_V3', '1') == '1'
         USE_DETECTOR_V2 = os.getenv('USE_DETECTOR_V2', '1') == '1'
-        if USE_DETECTOR_V2:
+        if USE_DETECTOR_V3 and CANONICAL_TEMPLATE_DIR.exists():
+            self.detector = CardDetectorV3(str(CANONICAL_TEMPLATE_DIR), threshold=0.55)
+            logging.info("Dùng CardDetectorV3 (97.4%% accuracy, multi-scale + SVM)")
+        elif USE_DETECTOR_V2:
             self.detector = CardDetectorV2(str(TEMPLATE_DIR), threshold=0.66)
             logging.info("Dùng CardDetectorV2 (crop30 + all-peaks detection)")
         else:
