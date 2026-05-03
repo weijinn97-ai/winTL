@@ -10,11 +10,15 @@ Forked từ [tilen](https://github.com/weijinn97-ai/tilen), tối ưu dựa trê
 
 ```
 bottlll.py                  # File chính
-card_detector.py            # Module nhận diện bài (template matching)
+card_detector.py            # V1: full-card grayscale template matching (legacy)
+card_detector_v2.py         # V2: crop30 + all-peaks (fallback)
+card_detector_v3.py         # V3: multi-scale + voting suit + SVM (97.4% accuracy, mặc định)
+canonical_templates/        # Templates cho V3 (rank_gallery + suit_gallery, ~3 MB) — commit
+cs_classifier.pkl           # SVM classifier ♠↔♣ cho V3 (~3.6 MB) — commit
 bot_config.json             # Tọa độ nút + position người chơi (KHÔNG commit)
 bot_config.json.example     # Template — copy thành bot_config.json
 .env                        # ADB_PATH / MEMU_IP (KHÔNG commit)
-cards_output/               # Template bài (52 ảnh) — không commit
+cards_output/               # Template bài cho V1/V2 (52 ảnh) — không commit
 button_templates/           # Template nút (5 ảnh) — không commit
 speed_log.csv               # Log auto-generated
 ```
@@ -51,7 +55,18 @@ ADB_PATH=adb
 MEMU_IP=127.0.0.1:21503
 ```
 
-3. Đặt template ảnh vào `cards_output/` và `button_templates/`.
+3. Đặt template `button_templates/` (5 ảnh nút).
+   `cards_output/` chỉ cần cho detector V1/V2; V3 (mặc định) dùng `canonical_templates/` đã commit sẵn.
+
+### Chọn detector qua env (`.env`)
+
+```
+USE_DETECTOR_V3=1   # mặc định: V3 multi-scale + SVM (97.4%, cần canonical_templates/)
+USE_DETECTOR_V2=1   # chỉ có hiệu lực khi V3 tắt hoặc thiếu canonical_templates/
+```
+
+Đặt `USE_DETECTOR_V3=0` để quay về V2 (cần `cards_output/`).
+
 
 ## Kiểm tra setup
 
@@ -84,7 +99,8 @@ Default speed: **100%** (tốc độ chuẩn). Hotkey trên cho phép tăng khi 
 - `continuous_play_mode`: khi chỉ có Đánh → loop chặt liên tục (capture lại sau mỗi đánh, không "tự tính"). Tôn trọng pause/tắt từ Ctrl+L/K.
 - `play_hand`: tap RESET_POS để bỏ chọn cũ → tap lá → click Đánh → capture lại để biết bài còn.
 - `find_best_hand` (greedy): sảnh dài nhất → **đôi thông** (3+ đôi liên tiếp) → tứ quý → ba cây → đôi → lẻ; mỗi nhóm chọn bộ NHỎ NHẤT.
-- `card_detector.py` / `card_detector_v2.py`: template matching 52 lá với **parallel matching** (ThreadPoolExecutor).
+- `card_detector_v3.py` (mặc định): multi-scale rank match với gallery 25 mẫu/rank → NMS → skyline → voting suit (15 điểm offset) → SVM tiebreak ♠↔♣. **97.4% accuracy** trên 24 screenshots benchmark.
+- `card_detector.py` / `card_detector_v2.py` (fallback): template matching 52 lá với **parallel matching** (ThreadPoolExecutor).
 - ADB: tự reconnect khi drop, throttle log, kill server khi exit.
 
 ## Tài liệu cho agents
