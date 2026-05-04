@@ -528,12 +528,20 @@ class TiLenBot:
     # -------------------- CẤU HÌNH --------------------
     def load_config(self):
         config_path = BASE_DIR / "bot_config.json"
+        example_path = BASE_DIR / "bot_config.json.example"
         if not config_path.exists():
-            logging.error(f"Không tìm thấy file cấu hình: {config_path}")
-            print(f"\n[LỖI] Không tìm thấy file bot_config.json tại: {config_path}")
-            if sys.stdin.isatty():
-                input("Nhấn Enter để thoát...")
-            sys.exit(1)
+            if example_path.exists():
+                shutil.copyfile(example_path, config_path)
+                logging.info(
+                    f"Tự tạo {config_path.name} từ {example_path.name} (lần chạy đầu)."
+                )
+            else:
+                logging.error(f"Không tìm thấy file cấu hình: {config_path}")
+                print(f"\n[LỖI] Không tìm thấy file bot_config.json tại: {config_path}")
+                print(f"       Cũng không thấy {example_path.name} để tạo mặc định.")
+                if sys.stdin.isatty():
+                    input("Nhấn Enter để thoát...")
+                sys.exit(1)
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 cfg = json.load(f)
